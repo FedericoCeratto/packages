@@ -18,10 +18,13 @@ table#installation_reports tr td {
   padding: 2px;
 }
 
-td.ok {
+td.OK {
   background-color: #f0fff0
 }
-td.fail {
+td.FAIL {
+  background-color: #fff0f0
+}
+td.TIMEOUT {
   background-color: #fff0f0
 }
 
@@ -46,15 +49,9 @@ div#footer {
  <td>
   <a class="softtext" href="${irep.url}">${irep.title}</a>
  </td>
- #if irep.success:
- <td class="ok">
-   <a class="softtext" href="nimble_install_output_${irep.title}.html">OK</a>
+ <td class="${$irep.test_result}">
+   <a class="softtext" href="nimble_install_output_${irep.title}.html">${$irep.test_result}</a>
  </td>
- #else:
- <td class="fail">
-   <a class="softtext" href="nimble_install_output_${irep.title}.html">Failure</a>
- </td>
- #end if
  </td>
 </tr>
 #end for

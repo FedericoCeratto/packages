@@ -16,11 +16,13 @@ import times
 
 const
   nimble_binpath = "./nimble"
-  timeout = 30
+  timeout = 60
 
 type
-  InstRep* = tuple[title, url: string, success: bool]
   Pkg = tuple[name, url: string]
+  TestResult* {.pure.} = enum
+    OK, FAIL, TIMEOUT
+  InstRep* = tuple[title, url: string, test_result: TestResult]
 
 include "install_test_report.tmpl"
 include "install_test_output.tmpl"
@@ -34,6 +36,12 @@ proc load_packages(): seq[Pkg] =
   for pdata in pkg_list:
     result.add((pdata["name"].getStr(), pdata["web"].getStr()))
   result = result.sortedByIt(it[0])
+
+proc write_output(p: Process, pkg: Pkg) =
+  discard p.waitForExit()
+  let output = p.outputStream().readAll()
+  let page = generate_install_report_output_page(pkg.name, output, gmtime())
+  writeFile("nimble_install_output_$#.html" % pkg.name, page)
 
 proc main() =
 
@@ -61,23 +69,20 @@ proc main() =
       else:
         break
 
-    case exit_code
-    of -1:
-      echo "TIMEOUT"
-    of 0:
-      echo "OK"
-      discard p.waitForExit()
-      let output = p.outputStream().readAll()
-      let page = generate_install_report_output_page(pkg.name, output, gmtime())
-      writeFile("nimble_install_output_$#.html" % pkg.name, page)
-    else:
-      echo "FAIL"
-      discard p.waitForExit()
-      let output = p.outputStream().readAll()
-      let page = generate_install_report_output_page(pkg.name, output, gmtime())
-      writeFile("nimble_install_output_$#.html" % pkg.name, page)
+    let test_result =
+      case exit_code
+      of -1:
+        p.kill()
+        TestResult.TIMEOUT
+      of 0:
+        TestResult.OK
+      else:
+        TestResult.FAIL
 
-    let r: InstRep = (pkg.name, pkg.url, exit_code == 0)
+    echo $test_result
+    write_output(p, pkg)
+
+    let r: InstRep = (pkg.name, pkg.url, test_result)
     installation_reports.add r
     assert tmp_dir.len > 10
     removeDir(tmp_dir)
