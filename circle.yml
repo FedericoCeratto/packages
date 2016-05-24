@@ -1,0 +1,25 @@
+
+machine:
+
+  environment:
+    ENV_VAR_FOO: bar
+
+dependencies:
+  pre:
+    - wget http://http.us.debian.org/debian/pool/main/n/nim/nim_0.13.0-1_amd64.deb
+    - sudo dpkg -i nim_0.13.0-1_amd64.deb
+    - wget https://circle-artifacts.com/gh/FedericoCeratto/nimble/8/artifacts/0/tmp/circle-artifacts.I5rPyL7/nimble
+    - chmod +x nimble
+
+general:
+  artifacts:
+    - "nimble_install_test_output"
+
+test:
+  override:
+    - nim c -r nimble_install_test.nim
+
+#notify:
+#  webhooks:
+#    # A list of hashes representing hooks. Only the url field is supported.
+#    - url: https://someurl.com/hooks/circle

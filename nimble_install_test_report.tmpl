@@ -50,7 +50,10 @@ div#footer {
   <a class="softtext" href="${irep.url}">${irep.title}</a>
  </td>
  <td class="${$irep.test_result}">
-   <a class="softtext" href="nimble_install_output_${irep.title}.html">${$irep.test_result}</a>
+   <a class="softtext" href="${irep.title}.html">${$irep.test_result}</a>
+ </td>
+ <td>
+   <img src="${$irep.title}.svg" alt="${irep.test_result}">
  </td>
  </td>
 </tr>
